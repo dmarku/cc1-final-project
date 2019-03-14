@@ -51,12 +51,19 @@ function* generateTreeLines(origin: Vector3, tree: Tree): Iterable<Vector3[]> {
   yield [origin, origin.add(new Vector3(0, tree.height, 0))];
   if (tree.branches) {
     for (const branch of tree.branches) {
-      const branchOrigin = origin.add(new Vector3(0, branch.height, 0));
-      const offset = branchOrigin.add(Vector3.FromArray(branch.offset));
-      yield [branchOrigin, offset];
-      yield* generateTreeLines(offset, branch.tree);
+      yield* generateBranchLines(origin, branch);
     }
   }
+}
+
+function* generateBranchLines(
+  origin: Vector3,
+  branch: Branch,
+): Iterable<Vector3[]> {
+  const branchOrigin = origin.add(new Vector3(0, branch.height, 0));
+  const offset = branchOrigin.add(Vector3.FromArray(branch.offset));
+  yield [branchOrigin, offset];
+  yield* generateTreeLines(offset, branch.tree);
 }
 
 function generateTreeMesh(tree: Tree, scene: Scene) {
