@@ -1,0 +1,13 @@
+body {
+  color: #d0d0d0;
+  background: #282828;
+  font-family: "Open Sans", sans-serif;
+}
+
+header h1 {
+  text-align: center;
+}
+
+.canvas-container {
+  text-align: center;
+}
