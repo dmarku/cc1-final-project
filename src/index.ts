@@ -47,30 +47,23 @@ window.addEventListener("DOMContentLoaded", () => {
   engine.runRenderLoop(() => scene.render());
 });
 
+function* generateTreeLines(origin: Vector3, tree: Tree): Iterable<Vector3[]> {
+  yield [origin, origin.add(new Vector3(0, tree.height, 0))];
+  if (tree.branches) {
+    for (const branch of tree.branches) {
+      const branchOrigin = origin.add(new Vector3(0, branch.height, 0));
+      const offset = branchOrigin.add(Vector3.FromArray(branch.offset));
+      yield [branchOrigin, offset];
+      yield* generateTreeLines(offset, branch.tree);
+    }
+  }
+}
+
 function generateTreeMesh(tree: Tree, scene: Scene) {
-  const lines = [
-    [new Vector3(0, 0, 0), new Vector3(0, tree.height, 0)],
-    ...(tree.branches
-      ? tree.branches.map(branch => {
-          const origin = new Vector3(0, branch.height, 0);
-          const offset = Vector3.FromArray(branch.offset);
-          return [origin, origin.add(offset)];
-        })
-      : []),
-  ];
+  const lines = Array.from(generateTreeLines(new Vector3(0, 0, 0), tree));
 
   const treeMesh = MeshBuilder.CreateLineSystem("tree", { lines }, scene);
   treeMesh.color = new Color3(0.1, 0.7, 0.1);
-
-  if (tree.branches) {
-    for (const branch of tree.branches) {
-      const branchMesh = generateTreeMesh(branch.tree, scene);
-      branchMesh.position = new Vector3(0, branch.height, 0).addInPlace(
-        Vector3.FromArray(branch.offset),
-      );
-      branchMesh.parent = treeMesh;
-    }
-  }
   return treeMesh;
 }
 
