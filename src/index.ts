@@ -12,6 +12,14 @@ import {
 
 interface Tree {
   height: number;
+  branches?: Branch[];
+}
+
+interface Branch {
+  // at which height the branch occurs
+  height: number;
+  offset: [number, number, number];
+  tree: Tree;
 }
 
 window.addEventListener("DOMContentLoaded", () => {
@@ -26,13 +34,45 @@ window.addEventListener("DOMContentLoaded", () => {
   sphere.position = new Vector3(0, 5, 0);
   */
 
-  const tree: Tree = { height: 5 };
+  const tree: Tree = {
+    height: 5,
+    branches: [
+      { height: 2.5, offset: [1, 1, 1], tree: { height: 2 } },
+      { height: 4, offset: [-1, 1, 0], tree: { height: 1 } },
+    ],
+  };
 
-  const lines = [[new Vector3(0, 0, 0), new Vector3(0, tree.height, 0)]];
-  const treeMesh = MeshBuilder.CreateLineSystem("tree", { lines }, scene);
-  treeMesh.color = new Color3(0.1, 0.7, 0.1);
+  generateTreeMesh(tree, scene);
+
   engine.runRenderLoop(() => scene.render());
 });
+
+function generateTreeMesh(tree: Tree, scene: Scene) {
+  const lines = [
+    [new Vector3(0, 0, 0), new Vector3(0, tree.height, 0)],
+    ...(tree.branches
+      ? tree.branches.map(branch => {
+          const origin = new Vector3(0, branch.height, 0);
+          const offset = Vector3.FromArray(branch.offset);
+          return [origin, origin.add(offset)];
+        })
+      : []),
+  ];
+
+  const treeMesh = MeshBuilder.CreateLineSystem("tree", { lines }, scene);
+  treeMesh.color = new Color3(0.1, 0.7, 0.1);
+
+  if (tree.branches) {
+    for (const branch of tree.branches) {
+      const branchMesh = generateTreeMesh(branch.tree, scene);
+      branchMesh.position = new Vector3(0, branch.height, 0).addInPlace(
+        Vector3.FromArray(branch.offset),
+      );
+      branchMesh.parent = treeMesh;
+    }
+  }
+  return treeMesh;
+}
 
 function createScene(engine: Engine): Scene {
   const scene = new Scene(engine);
