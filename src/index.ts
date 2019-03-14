@@ -42,7 +42,7 @@ window.addEventListener("DOMContentLoaded", () => {
     ],
   };
 
-  generateTreeMesh(tree, scene);
+  generateTreeMesh(() => generateTreeLines(new Vector3(0, 0, 0), tree), scene);
 
   engine.runRenderLoop(() => scene.render());
 });
@@ -66,9 +66,8 @@ function* generateBranchLines(
   yield* generateTreeLines(offset, branch.tree);
 }
 
-function generateTreeMesh(tree: Tree, scene: Scene) {
-  const lines = Array.from(generateTreeLines(new Vector3(0, 0, 0), tree));
-
+function generateTreeMesh(tree: () => Iterable<Vector3[]>, scene: Scene) {
+  const lines = Array.from(tree());
   const treeMesh = MeshBuilder.CreateLineSystem("tree", { lines }, scene);
   treeMesh.color = new Color3(0.1, 0.7, 0.1);
   return treeMesh;
