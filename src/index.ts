@@ -10,17 +10,15 @@ import {
   Color3,
 } from "babylonjs";
 
-interface Tree {
-  height: number;
-  branches?: Branch[];
-}
-
 interface Branch {
   // at which height the branch occurs
   height: number;
   offset: [number, number, number];
-  tree: Tree;
+  treeHeight: number;
+  branches?: Branch[];
 }
+
+type TreeGenerator = () => Iterable<Vector3[]>;
 
 window.addEventListener("DOMContentLoaded", () => {
   const canvas = document.getElementById("3d-view") as HTMLCanvasElement;
@@ -34,26 +32,30 @@ window.addEventListener("DOMContentLoaded", () => {
   sphere.position = new Vector3(0, 5, 0);
   */
 
-  const tree: Tree = {
-    height: 5,
-    branches: [
-      { height: 2.5, offset: [1, 1, 1], tree: { height: 2 } },
-      { height: 4, offset: [-1, 1, 0], tree: { height: 1 } },
-    ],
-  };
-
-  generateTreeMesh(() => generateTreeLines(new Vector3(0, 0, 0), tree), scene);
+  generateTreeMesh(
+    generateTreeLines(new Vector3(0, 0, 0), 5, [
+      { height: 2.5, offset: [1, 1, 1], treeHeight: 2 },
+      { height: 4, offset: [-1, 1, 0], treeHeight: 1 },
+    ]),
+    scene,
+  );
 
   engine.runRenderLoop(() => scene.render());
 });
 
-function* generateTreeLines(origin: Vector3, tree: Tree): Iterable<Vector3[]> {
-  yield [origin, origin.add(new Vector3(0, tree.height, 0))];
-  if (tree.branches) {
-    for (const branch of tree.branches) {
-      yield* generateBranchLines(origin, branch);
+function generateTreeLines(
+  origin: Vector3,
+  height: number,
+  branches: Branch[],
+): TreeGenerator {
+  return function*(): Iterable<Vector3[]> {
+    yield [origin, origin.add(new Vector3(0, height, 0))];
+    if (branches) {
+      for (const branch of branches) {
+        yield* generateBranchLines(origin, branch);
+      }
     }
-  }
+  };
 }
 
 function* generateBranchLines(
@@ -63,10 +65,10 @@ function* generateBranchLines(
   const branchOrigin = origin.add(new Vector3(0, branch.height, 0));
   const offset = branchOrigin.add(Vector3.FromArray(branch.offset));
   yield [branchOrigin, offset];
-  yield* generateTreeLines(offset, branch.tree);
+  yield* generateTreeLines(offset, branch.treeHeight, branch.branches || [])();
 }
 
-function generateTreeMesh(tree: () => Iterable<Vector3[]>, scene: Scene) {
+function generateTreeMesh(tree: TreeGenerator, scene: Scene) {
   const lines = Array.from(tree());
   const treeMesh = MeshBuilder.CreateLineSystem("tree", { lines }, scene);
   treeMesh.color = new Color3(0.1, 0.7, 0.1);
