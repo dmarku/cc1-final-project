@@ -6,19 +6,31 @@ import {
   ArcRotateCamera,
   MeshBuilder,
   Axis,
-  TransformNode
+  TransformNode,
+  Color3,
 } from "babylonjs";
+
+interface Tree {
+  height: number;
+}
 
 window.addEventListener("DOMContentLoaded", () => {
   const canvas = document.getElementById("3d-view") as HTMLCanvasElement;
+
   const engine = new Engine(canvas, true);
   const scene = createScene(engine);
   const stage = createStage({ width: 10, depth: 10, height: 10 }, scene);
 
+  /*
   const sphere = MeshBuilder.CreateIcoSphere("sphere", { radius: 1 }, scene);
   sphere.position = new Vector3(0, 5, 0);
-  const height = 5;
+  */
 
+  const tree: Tree = { height: 5 };
+
+  const lines = [[new Vector3(0, 0, 0), new Vector3(0, tree.height, 0)]];
+  const treeMesh = MeshBuilder.CreateLineSystem("tree", { lines }, scene);
+  treeMesh.color = new Color3(0.1, 0.7, 0.1);
   engine.runRenderLoop(() => scene.render());
 });
 
@@ -30,7 +42,7 @@ function createScene(engine: Engine): Scene {
     Math.PI / 2,
     2,
     new Vector3(0, 5, 15),
-    scene
+    scene,
   );
   const sun = new HemisphericLight("sun", new Vector3(1, 1, 0), scene);
 
@@ -56,14 +68,14 @@ function createStage(parameters: StageParameters, scene: Scene) {
   const ground = MeshBuilder.CreateGround(
     "ground",
     { width, height: depth },
-    scene
+    scene,
   );
   ground.parent = stage;
 
   const beam = MeshBuilder.CreateCylinder(
     "beam",
     { height, diameter: 0.2 },
-    scene
+    scene,
   );
   beam.setEnabled(false);
 
