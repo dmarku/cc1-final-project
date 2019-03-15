@@ -25,18 +25,17 @@ window.addEventListener("DOMContentLoaded", () => {
   */
 
   generateTreeMesh(
-    () =>
-      tree([
-        branch(
-          new Vector3(1, 1, 1),
-          tree([
-            branch(new Vector3(0.5, 0.5, 0.5), tree()),
-            branch(new Vector3(-0.5, 0.5, 0), tree()),
-          ]),
-        ),
-        branch(new Vector3(-1, 1, 0), tree()),
-        branch(new Vector3(0.7, 1, 0.2), tree()),
-      ])(new Vector3(0, 0, 0), new Vector3(0, 5, 0)),
+    tree([
+      branch(
+        new Vector3(1, 1, 1),
+        tree([
+          branch(new Vector3(0.5, 0.5, 0.5), tree()),
+          branch(new Vector3(-0.5, 0.5, 0), tree()),
+        ]),
+      ),
+      branch(new Vector3(-1, 1, 0), tree()),
+      branch(new Vector3(0.7, 1, 0.2), tree()),
+    ])(new Vector3(0, 0, 0), new Vector3(0, 5, 0)),
     scene,
   );
 
@@ -63,8 +62,8 @@ function branch(offset: Vector3, tree: TreeGenerator): TreeGenerator {
   };
 }
 
-function generateTreeMesh(tree: () => Iterable<Vector3[]>, scene: Scene) {
-  const lines = Array.from(tree());
+function generateTreeMesh(tree: Iterable<Vector3[]>, scene: Scene) {
+  const lines = Array.from(tree);
   const treeMesh = MeshBuilder.CreateLineSystem("tree", { lines }, scene);
   treeMesh.color = new Color3(0.1, 0.7, 0.1);
   return treeMesh;
