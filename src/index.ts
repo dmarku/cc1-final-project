@@ -98,9 +98,11 @@ function createScene(engine: Engine): Scene {
     Math.PI / 2,
     Math.PI / 2,
     2,
-    new Vector3(0, 5, 15),
+    new Vector3(0, 5, 0),
     scene,
   );
+  camera.useAutoRotationBehavior = true;
+  camera.position = new Vector3(0, 5, -14);
   const sun = new HemisphericLight("sun", new Vector3(1, 1, 0), scene);
 
   return scene;
