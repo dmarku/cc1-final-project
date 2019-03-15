@@ -25,24 +25,24 @@ window.addEventListener("DOMContentLoaded", () => {
   */
 
   generateTreeMesh(
-    tree([
+    tree(
       branch(
         new Vector3(1, 1, 1),
-        tree([
+        tree(
           branch(new Vector3(0.5, 0.5, 0.5), tree()),
           branch(new Vector3(-0.5, 0.5, 0), tree()),
-        ]),
+        ),
       ),
       branch(new Vector3(-1, 1, 0), tree()),
       branch(new Vector3(0.7, 1, 0.2), tree()),
-    ])(new Vector3(0, 0, 0), new Vector3(0, 5, 0)),
+    )(new Vector3(0, 0, 0), new Vector3(0, 5, 0)),
     scene,
   );
 
   engine.runRenderLoop(() => scene.render());
 });
 
-function tree(branches: TreeGenerator[] = []): TreeGenerator {
+function tree(...branches: TreeGenerator[]): TreeGenerator {
   return function*(origin, tip) {
     yield [origin, origin.add(tip)];
     for (const [index, branch] of branches.entries()) {
