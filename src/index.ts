@@ -14,8 +14,8 @@ import {
 interface Branch {
   // at which height the branch occurs
   height: number;
-  offset: [number, number, number];
-  treeHeight: number;
+  offset: Vector3;
+  tip: Vector3;
   branches?: TreeGenerator[];
 }
 
@@ -25,7 +25,7 @@ function* gmap<F, T>(map: (from: F) => T, i: Iterable<F>): Iterable<T> {
   }
 }
 
-type TreeGenerator = () => Iterable<Vector3[]>;
+type TreeGenerator = (origin: Vector3, tip: Vector3) => Iterable<Vector3[]>;
 
 window.addEventListener("DOMContentLoaded", () => {
   const canvas = document.getElementById("3d-view") as HTMLCanvasElement;
@@ -42,38 +42,35 @@ window.addEventListener("DOMContentLoaded", () => {
   const origin = new Vector3(0, 0, 0);
 
   generateTreeMesh(
-    generateTreeLines(origin, 5, [
-      generateBranchLines(origin, {
-        height: 2.5,
-        offset: [1, 1, 1],
-        treeHeight: 2,
-      }),
-      generateBranchLines(origin, {
-        height: 4,
-        offset: [-1, 1, 0],
-        treeHeight: 1,
-      }),
-      generateBranchLines(origin, {
-        height: 1,
-        offset: [0.7, 1, 0.2],
-        treeHeight: 0.7,
-      }),
-    ]),
+    () =>
+      generateTreeLines([
+        generateBranchLines(origin, {
+          height: 2.5,
+          offset: new Vector3(1, 1, 1),
+          tip: new Vector3(0, 2, 0),
+        }),
+        generateBranchLines(origin, {
+          height: 4,
+          offset: new Vector3(-1, 1, 0),
+          tip: new Vector3(0, 1, 0),
+        }),
+        generateBranchLines(origin, {
+          height: 1,
+          offset: new Vector3(0.7, 1, 0.2),
+          tip: new Vector3(0, 0.7, 0),
+        }),
+      ])(new Vector3(0, 0, 0), new Vector3(0, 5, 0)),
     scene,
   );
 
   engine.runRenderLoop(() => scene.render());
 });
 
-function generateTreeLines(
-  origin: Vector3,
-  height: number,
-  branches: TreeGenerator[],
-): TreeGenerator {
-  return function*(): Iterable<Vector3[]> {
-    yield [origin, origin.add(new Vector3(0, height, 0))];
+function generateTreeLines(branches: TreeGenerator[]): TreeGenerator {
+  return function*(origin, tip): Iterable<Vector3[]> {
+    yield [origin, origin.add(tip)];
     for (const branch of branches) {
-      yield* branch();
+      yield* branch(origin, tip);
     }
   };
 }
@@ -81,17 +78,13 @@ function generateTreeLines(
 function generateBranchLines(origin: Vector3, branch: Branch): TreeGenerator {
   return function*() {
     const branchOrigin = origin.add(new Vector3(0, branch.height, 0));
-    const offset = branchOrigin.add(Vector3.FromArray(branch.offset));
+    const offset = branchOrigin.add(branch.offset);
     yield [branchOrigin, offset];
-    yield* generateTreeLines(
-      offset,
-      branch.treeHeight,
-      branch.branches || [],
-    )();
+    yield* generateTreeLines(branch.branches || [])(offset, branch.tip);
   };
 }
 
-function generateTreeMesh(tree: TreeGenerator, scene: Scene) {
+function generateTreeMesh(tree: () => Iterable<Vector3[]>, scene: Scene) {
   const lines = Array.from(tree());
   const treeMesh = MeshBuilder.CreateLineSystem("tree", { lines }, scene);
   treeMesh.color = new Color3(0.1, 0.7, 0.1);
