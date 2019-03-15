@@ -5,12 +5,13 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "webpack-dev-server"
+    "dev": "webpack-dev-server",
+    "build": "webpack"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "babylonjs": "^4.0.0-alpha.32"
+    "babylonjs": "^4.0.0-alpha.33"
   },
   "devDependencies": {
     "ts-loader": "^5.3.3",
