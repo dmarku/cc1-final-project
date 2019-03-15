@@ -19,6 +19,18 @@ window.addEventListener("DOMContentLoaded", () => {
   const scene = createScene(engine);
   const stage = createStage({ width: 10, depth: 10, height: 10 }, scene);
 
+  const camera = new ArcRotateCamera(
+    "camera",
+    Math.PI / 2,
+    Math.PI / 2,
+    2,
+    new Vector3(0, 5, 0),
+    scene,
+  );
+  camera.useAutoRotationBehavior = true;
+  camera.position = new Vector3(0, 5, -14);
+  camera.attachControl(canvas, true);
+
   /*
   const sphere = MeshBuilder.CreateIcoSphere("sphere", { radius: 1 }, scene);
   sphere.position = new Vector3(0, 5, 0);
@@ -93,16 +105,6 @@ function generateTreeMesh(tree: Iterable<Vector3[]>, scene: Scene) {
 
 function createScene(engine: Engine): Scene {
   const scene = new Scene(engine);
-  const camera = new ArcRotateCamera(
-    "camera",
-    Math.PI / 2,
-    Math.PI / 2,
-    2,
-    new Vector3(0, 5, 0),
-    scene,
-  );
-  camera.useAutoRotationBehavior = true;
-  camera.position = new Vector3(0, 5, -14);
   const sun = new HemisphericLight("sun", new Vector3(1, 1, 0), scene);
 
   return scene;
