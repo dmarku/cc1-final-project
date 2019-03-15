@@ -38,7 +38,7 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 function generateTreeLines(branches: TreeGenerator[]): TreeGenerator {
-  return function*(origin, tip): Iterable<Vector3[]> {
+  return function*(origin, tip) {
     yield [origin, origin.add(tip)];
     for (const branch of branches) {
       yield* branch(origin, tip.scale(0.5));
