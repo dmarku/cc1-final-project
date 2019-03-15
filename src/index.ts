@@ -24,23 +24,45 @@ window.addEventListener("DOMContentLoaded", () => {
   sphere.position = new Vector3(0, 5, 0);
   */
 
+  const offsets = spokes(3, Math.PI * 0.2, 1);
+  const subOffsets = leftRight(0.5, 0.5, 0.5);
+
   generateTreeMesh(
     tree(
       branch(
-        new Vector3(1, 1, 1),
+        offsets.next().value,
         tree(
-          branch(new Vector3(0.5, 0.5, 0.5), tree()),
-          branch(new Vector3(-0.5, 0.5, 0), tree()),
+          branch(subOffsets.next().value, tree()),
+          branch(subOffsets.next().value, tree()),
         ),
       ),
-      branch(new Vector3(-1, 1, 0), tree()),
-      branch(new Vector3(0.7, 1, 0.2), tree()),
+      branch(offsets.next().value, tree()),
+      branch(offsets.next().value, tree()),
     )(new Vector3(0, 0, 0), new Vector3(0, 5, 0)),
     scene,
   );
 
   engine.runRenderLoop(() => scene.render());
 });
+
+function* spokes(n: number, phi: number, y: number = 0) {
+  const increment = (2 * Math.PI) / n;
+  let angle = phi;
+  while (true) {
+    yield new Vector3(Math.sin(angle), y, Math.cos(angle));
+    angle += increment;
+    if (angle > 2 * Math.PI) {
+      angle -= 2 * Math.PI;
+    }
+  }
+}
+
+function* leftRight(x: number, y: number, z: number) {
+  while (true) {
+    yield new Vector3(x, y, z);
+    yield new Vector3(-x, y, z);
+  }
+}
 
 function tree(...branches: TreeGenerator[]): TreeGenerator {
   return function*(origin, tip) {
