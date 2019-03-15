@@ -8,22 +8,7 @@ import {
   Axis,
   TransformNode,
   Color3,
-  Matrix,
 } from "babylonjs";
-
-interface Branch {
-  // at which height the branch occurs
-  height: number;
-  offset: Vector3;
-  tip: Vector3;
-  branches?: TreeGenerator[];
-}
-
-function* gmap<F, T>(map: (from: F) => T, i: Iterable<F>): Iterable<T> {
-  for (const value of i) {
-    yield map(value);
-  }
-}
 
 type TreeGenerator = (origin: Vector3, tip: Vector3) => Iterable<Vector3[]>;
 
@@ -39,26 +24,12 @@ window.addEventListener("DOMContentLoaded", () => {
   sphere.position = new Vector3(0, 5, 0);
   */
 
-  const origin = new Vector3(0, 0, 0);
-
   generateTreeMesh(
     () =>
       generateTreeLines([
-        generateBranchLines(origin, {
-          height: 2.5,
-          offset: new Vector3(1, 1, 1),
-          tip: new Vector3(0, 2, 0),
-        }),
-        generateBranchLines(origin, {
-          height: 4,
-          offset: new Vector3(-1, 1, 0),
-          tip: new Vector3(0, 1, 0),
-        }),
-        generateBranchLines(origin, {
-          height: 1,
-          offset: new Vector3(0.7, 1, 0.2),
-          tip: new Vector3(0, 0.7, 0),
-        }),
+        generateBranchLines(1, new Vector3(1, 1, 1), []),
+        generateBranchLines(2.5, new Vector3(-1, 1, 0), []),
+        generateBranchLines(4, new Vector3(0.7, 1, 0.2), []),
       ])(new Vector3(0, 0, 0), new Vector3(0, 5, 0)),
     scene,
   );
@@ -70,17 +41,21 @@ function generateTreeLines(branches: TreeGenerator[]): TreeGenerator {
   return function*(origin, tip): Iterable<Vector3[]> {
     yield [origin, origin.add(tip)];
     for (const branch of branches) {
-      yield* branch(origin, tip);
+      yield* branch(origin, tip.scale(0.5));
     }
   };
 }
 
-function generateBranchLines(origin: Vector3, branch: Branch): TreeGenerator {
-  return function*() {
-    const branchOrigin = origin.add(new Vector3(0, branch.height, 0));
-    const offset = branchOrigin.add(branch.offset);
-    yield [branchOrigin, offset];
-    yield* generateTreeLines(branch.branches || [])(offset, branch.tip);
+function generateBranchLines(
+  height: number,
+  offset: Vector3,
+  branches: TreeGenerator[],
+): TreeGenerator {
+  return function*(origin, tip) {
+    const branchOrigin = origin.add(new Vector3(0, height, 0));
+    const _offset = branchOrigin.add(offset);
+    yield [branchOrigin, _offset];
+    yield* generateTreeLines(branches)(_offset, tip);
   };
 }
 
