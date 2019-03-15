@@ -27,9 +27,12 @@ window.addEventListener("DOMContentLoaded", () => {
   generateTreeMesh(
     () =>
       generateTreeLines([
-        generateBranchLines(1, new Vector3(1, 1, 1), []),
-        generateBranchLines(2.5, new Vector3(-1, 1, 0), []),
-        generateBranchLines(4, new Vector3(0.7, 1, 0.2), []),
+        generateBranchLines(new Vector3(1, 1, 1), [
+          generateBranchLines(new Vector3(0.5, 0.5, 0.5), []),
+          generateBranchLines(new Vector3(-0.5, 0.5, 0), []),
+        ]),
+        generateBranchLines(new Vector3(-1, 1, 0), []),
+        generateBranchLines(new Vector3(0.7, 1, 0.2), []),
       ])(new Vector3(0, 0, 0), new Vector3(0, 5, 0)),
     scene,
   );
@@ -40,21 +43,22 @@ window.addEventListener("DOMContentLoaded", () => {
 function generateTreeLines(branches: TreeGenerator[]): TreeGenerator {
   return function*(origin, tip) {
     yield [origin, origin.add(tip)];
-    for (const branch of branches) {
-      yield* branch(origin, tip.scale(0.5));
+    for (const [index, branch] of branches.entries()) {
+      yield* branch(
+        origin.add(tip.scale((index + 1) / (branches.length + 1))),
+        tip.scale(0.5),
+      );
     }
   };
 }
 
 function generateBranchLines(
-  height: number,
   offset: Vector3,
   branches: TreeGenerator[],
 ): TreeGenerator {
   return function*(origin, tip) {
-    const branchOrigin = origin.add(new Vector3(0, height, 0));
-    const _offset = branchOrigin.add(offset);
-    yield [branchOrigin, _offset];
+    const _offset = origin.add(offset);
+    yield [origin, _offset];
     yield* generateTreeLines(branches)(_offset, tip);
   };
 }
