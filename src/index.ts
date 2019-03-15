@@ -27,12 +27,15 @@ window.addEventListener("DOMContentLoaded", () => {
   generateTreeMesh(
     () =>
       tree([
-        branch(new Vector3(1, 1, 1), [
-          branch(new Vector3(0.5, 0.5, 0.5)),
-          branch(new Vector3(-0.5, 0.5, 0)),
-        ]),
-        branch(new Vector3(-1, 1, 0)),
-        branch(new Vector3(0.7, 1, 0.2)),
+        branch(
+          new Vector3(1, 1, 1),
+          tree([
+            branch(new Vector3(0.5, 0.5, 0.5), tree()),
+            branch(new Vector3(-0.5, 0.5, 0), tree()),
+          ]),
+        ),
+        branch(new Vector3(-1, 1, 0), tree()),
+        branch(new Vector3(0.7, 1, 0.2), tree()),
       ])(new Vector3(0, 0, 0), new Vector3(0, 5, 0)),
     scene,
   );
@@ -52,14 +55,11 @@ function tree(branches: TreeGenerator[] = []): TreeGenerator {
   };
 }
 
-function branch(
-  offset: Vector3,
-  branches: TreeGenerator[] = [],
-): TreeGenerator {
+function branch(offset: Vector3, tree: TreeGenerator): TreeGenerator {
   return function*(origin, tip) {
     const _offset = origin.add(offset);
     yield [origin, _offset];
-    yield* tree(branches)(_offset, tip);
+    yield* tree(_offset, tip);
   };
 }
 
