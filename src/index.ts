@@ -37,7 +37,7 @@ window.addEventListener("DOMContentLoaded", () => {
   */
 
   const offsets = spokes(3, Math.PI * 0.2, 1);
-  const subOffsets = leftRight(0.5, 0.5, 0.5);
+  const subOffsets = leftRight(0.5, 0.5, -0.5);
 
   generateTreeMesh(
     tree(
@@ -72,7 +72,7 @@ function* spokes(n: number, phi: number, y: number = 0) {
 function* leftRight(x: number, y: number, z: number) {
   while (true) {
     yield new Vector3(x, y, z);
-    yield new Vector3(-x, y, z);
+    yield new Vector3(-x, y, -z);
   }
 }
 
