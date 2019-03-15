@@ -8,6 +8,7 @@ import {
   Axis,
   TransformNode,
   Color3,
+  Matrix,
 } from "babylonjs";
 
 interface Branch {
@@ -15,7 +16,13 @@ interface Branch {
   height: number;
   offset: [number, number, number];
   treeHeight: number;
-  branches?: Branch[];
+  branches?: TreeGenerator[];
+}
+
+function* gmap<F, T>(map: (from: F) => T, i: Iterable<F>): Iterable<T> {
+  for (const value of i) {
+    yield map(value);
+  }
 }
 
 type TreeGenerator = () => Iterable<Vector3[]>;
@@ -32,10 +39,25 @@ window.addEventListener("DOMContentLoaded", () => {
   sphere.position = new Vector3(0, 5, 0);
   */
 
+  const origin = new Vector3(0, 0, 0);
+
   generateTreeMesh(
-    generateTreeLines(new Vector3(0, 0, 0), 5, [
-      { height: 2.5, offset: [1, 1, 1], treeHeight: 2 },
-      { height: 4, offset: [-1, 1, 0], treeHeight: 1 },
+    generateTreeLines(origin, 5, [
+      generateBranchLines(origin, {
+        height: 2.5,
+        offset: [1, 1, 1],
+        treeHeight: 2,
+      }),
+      generateBranchLines(origin, {
+        height: 4,
+        offset: [-1, 1, 0],
+        treeHeight: 1,
+      }),
+      generateBranchLines(origin, {
+        height: 1,
+        offset: [0.7, 1, 0.2],
+        treeHeight: 0.7,
+      }),
     ]),
     scene,
   );
@@ -46,14 +68,12 @@ window.addEventListener("DOMContentLoaded", () => {
 function generateTreeLines(
   origin: Vector3,
   height: number,
-  branches: Branch[],
+  branches: TreeGenerator[],
 ): TreeGenerator {
   return function*(): Iterable<Vector3[]> {
     yield [origin, origin.add(new Vector3(0, height, 0))];
-    if (branches) {
-      for (const branch of branches) {
-        yield* generateBranchLines(origin, branch)();
-      }
+    for (const branch of branches) {
+      yield* branch();
     }
   };
 }
